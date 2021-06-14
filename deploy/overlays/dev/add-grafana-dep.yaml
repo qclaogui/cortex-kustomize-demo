@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-clusterrole
+rules:
+- verbs:
+  - get
+  - watch
+  - list
+  apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - secrets
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-clusterrolebinding
+subjects:
+- kind: ServiceAccount
+  name: grafana
+  namespace: cortex-monitoring-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-clusterrole
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "3000"
+    spec:
+      serviceAccountName: grafana
+      volumes:
+      - name: config
+        configMap:
+          name: grafana
+      - name: storage
+        emptyDir: {}
+      - name: sc-dashboard-volume
+        emptyDir: {}
+      - name: sc-dashboard-provider
+        configMap:
+          name: grafana-config-dashboards
+      containers:
+      - name: grafana-sc-dashboard
+        image: quay.io/kiwigrid/k8s-sidecar:1.10.7
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: METHOD
+        - name: LABEL
+          value: grafana_dashboard
+        - name: FOLDER
+          value: /dashboards
+        - name: RESOURCE
+          value: both
+        - name: NAMESPACE
+          value: cortex-monitoring-system
+        - name: FOLDER_ANNOTATION
+          value: grafana_dashboard_folder
+        volumeMounts:
+        - name: sc-dashboard-volume
+          mountPath: /dashboards
+      - name: grafana
+        image: grafana/grafana:7.5.7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http-service
+          containerPort: 80
+        - name: http-metrics
+          containerPort: 3000
+        volumeMounts:
+        - name: config
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana.ini
+        - name: storage
+          mountPath: /var/lib/grafana
+        - name: config
+          mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+          subPath: datasources.yaml
+        - name: sc-dashboard-volume
+          mountPath: /dashboards
+        - name: sc-dashboard-provider
+          mountPath: /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
+          subPath: provider.yaml

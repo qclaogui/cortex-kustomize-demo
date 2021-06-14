@@ -1,0 +1,63 @@
+# ----------------------------------------------------
+# apiVersion and kind of Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cortex-monitoring-system
+
+commonLabels:
+  team: team-infra
+
+resources:
+# This can improve cloning a large repository, or over a slow network.
+# https://github.com/kubernetes-sigs/kustomize/commit/24a64bdee32602b6756608d4c24da28486461199
+- github.com/qclaogui/cortex/deploy/blocks?ref=add-kustomize-support&submodules=false&timeout=2m30s
+- add-grafana-dep.yaml
+- add-grafana-svc.yaml
+- add-retrieval-dep.yaml
+- add-retrieval-svc.yaml
+
+patchesStrategicMerge:
+- patch-nginx-svc.yaml
+
+images:
+- name: quay.io/cortexproject/cortex
+  newTag: master-b6eea5f
+- name: consul
+  newTag: 1.9.4
+- name: minio/minio
+  newTag: RELEASE.2021-04-22T15-44-28Z
+- name: memcached
+  newTag: 1.6.9
+- name: prom/memcached-exporter
+  newTag: v0.9.0
+- name: nginx
+  newTag: 1.21.0
+- name: grafana/grafana
+  newTag: 8.0.1
+
+secretGenerator:
+- name: cortex-config
+  behavior: merge
+  files:
+  - configs/cortex.yaml
+
+configMapGenerator:
+- name: runtime-config
+  behavior: merge
+  files:
+  - configs/runtime.yaml
+- name: nginx
+  behavior: replace
+  files:
+  - configs/nginx.conf
+- name: retrieval-config
+  files:
+  - configs/prometheus.yml
+- name: grafana
+  files:
+  - configs/grafana/datasources.yaml
+  - configs/grafana/grafana.ini
+- name: grafana-config-dashboards
+  files:
+  - configs/grafana/provider.yaml
