@@ -1,16 +1,16 @@
 apiVersion: 1
 datasources:
 - access: proxy
-  editable: false
-  isDefault: true
-  jsonData:
-    httpHeaderName1: Authorization
-    tlsSkipVerify: true
   name: Prometheus
-  secureJsonData:
-    httpHeaderValue1: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDb3J0ZXggTW9uaXRvcmluZyBTeXN0ZW0iLCJpYXQiOjE2MjM2NzEzMzIsImF1ZCI6InFjbGFvZ3VpQGdtYWlsLmNvbSJ9.u9P_jhp28MzPUZNBXcQbHMb0lHaSxkSHOdqfRtffwoQ
   type: prometheus
   url: http://nginx.cortex-monitoring-system.svc/prometheus
-- name: loki
-  type: loki
-  url: http://loki.loki.svc:3100
+  editable: false
+  isDefault: true
+#  jsonData:
+#    httpHeaderName1: Authorization
+#    tlsSkipVerify: true
+#  secureJsonData:
+#    httpHeaderValue1: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDb3J0ZXggTW9uaXRvcmluZyBTeXN0ZW0iLCJpYXQiOjE2MjM2NzEzMzIsImF1ZCI6InFjbGFvZ3VpQGdtYWlsLmNvbSJ9.u9P_jhp28MzPUZNBXcQbHMb0lHaSxkSHOdqfRtffwoQ
+#- name: loki
+#  type: loki
+#  url: http://loki.loki.svc:3100

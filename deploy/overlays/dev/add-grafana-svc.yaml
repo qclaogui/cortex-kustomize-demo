@@ -10,7 +10,5 @@ spec:
   ports:
   - port: 3000
     name: http-metrics
-  - port: 80
-    name: http-service
   selector:
     app: grafana
